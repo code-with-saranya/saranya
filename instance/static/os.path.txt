@@ -1,0 +1,10 @@
+import os
+
+file_path = "/path/to/file.txt"
+
+if os.path.exists(file_path):
+    # File exists, perform necessary operations
+    pass
+else:
+    # File does not exist, handle the error
+    pass

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View History</title>
+</head>
+<body>
+    <h1>View History</h1>
+    <h2>Enter a record:</h2>
+    <form action="/add" method="POST">
+        <input type="text" name="record">
+        <input type="submit" value="Add">
+    </form>
+    <h2>Entered Records:</h2>
+    <ul>
+        {% for record in history %}
+            <li>{{ record }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Delete a record:</h2>
+    <form action="/delete" method="POST">
+        <input type="text" name="record">
+        <input type="submit" value="Delete">
+    </form>
+</body>
+</html>
