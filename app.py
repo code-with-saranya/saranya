@@ -1,91 +1,47 @@
-from flask import Flask, render_template, request, redirect
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import os
+from flask import Flask, render_template, request
 import pandas as pd
-import sqlite3
+from flask_mysqldb import MySQL
 
-app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
-db = SQLAlchemy(app)
-app.app_context().push()
-app.config["UPLOAD_FOLDER"]="static/excel"
+app = Flask(__name__)
 
-class Todo(db.Model):
-    sno=db.Column(db.Integer, primary_key=True)
-    name=db.Column(db.String(200), nullable=False)
-    address=db.Column(db.String(500), nullable=False)
-    date_created=db.Column(db.DateTime, default=datetime.utcnow)
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-    def __repr__(self) -> str:
-        return f"{self.sno} - {self.name}"
+app.config['MYSQL_HOST'] = 'localhost'  
+app.config['MYSQL_USER'] = 'root'   
+app.config['MYSQL_PASSWORD'] = 'Welcome2ntt' 
+app.config['MYSQL_DB'] = 'global'  
 
-
-@app.route('/', methods=['GET','POST'])
-def hello_world():
-    if request.method=='POST':
-       name=request.form['name']
-       address=request.form['address']
-       todo=Todo(name=name, address=address)
-       db.session.add(todo)
-       db.session.commit()
-    allTodo=Todo.query.all()
-    return render_template('index.html', allTodo=allTodo)
-   
-
-
-@app.route('/show')
-def products():
-    allTodo=Todo.query.all()
-    print(allTodo)
-    return 'this is products page'
-    
-@app.route('/update/<int:sno>',methods=['GET','POST'])
-def update(sno):
-    if request.method=='POST':
-       name=request.form['name']
-       address=request.form['address']
-       todo=Todo.query.filter_by(sno=sno).first()
-       todo.name=name
-       todo.address=address
-       db.session.add(todo)
-       db.session.commit()
-       return redirect("/")
-    todo=Todo.query.filter_by(sno=sno).first()
-    return render_template('update.html', todo=todo)
-
-@app.route('/delete/<int:sno>')
-def delete(sno):
-    todo=Todo.query.filter_by(sno=sno).first()
-    db.session.delete(todo)
-    db.session.commit()
-    return redirect("/")
+mysql = MySQL(app)
 
 
 
-@app.route('/upload',methods=['GET','POST'])
+@app.route('/upload', methods=['GET', 'POST'])
 def upload():
-    if request.method=="POST":
-        upload_excel=request.files['upload_excel']
-        if upload_excel.filename !='':
-            filepath=os.path.join(app.config["UPLOAD_FOLDER"],upload_excel.filename)
-            upload_excel.save(filepath)
-            data_frame = pd.read_excel('C:\\Users\\saranya.govindarajul\\OneDrive - NTT\\Desktop\\task3\\static\\css\\excel\\data1.xlsx')
-            connection = sqlite3.connect('C:\\Users\\saranya.govindarajul\\OneDrive - NTT\\Desktop\\task3\\instance\\todo.db')
-            cursor = connection.cursor() 
-            cursor.execute('SELECT * FROM todo')
-            rows = cursor.fetchall()
-            for index, row in data_frame.iterrows():
-                Name= row['Name']
-                Address = row['Address']
-               
-                insert_query = f"INSERT INTO todo (Name, Address) VALUES (?, ?)"
-                cursor.execute(insert_query, (Name, Address))
-            connection.commit()
-            connection.close()
-        return render_template('index.html') 
-       
-    return render_template('upload.html')  
-if __name__ =="__main__":
-    app.run(debug=True, port=8000)
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and file.filename.endswith('.xlsx'):
+            
+            df = pd.read_excel('C:\\Users\\saranya.govindarajul\\OneDrive - NTT\\Desktop\\pro\\static\\css\\excel\\emply.xlsx')
+            name = list(df.name)
+            email =list(df.email)
+
+            data = df.to_dict(orient='records')
+
+            cur = mysql.connection.cursor()
+            
+            query = f"INSERT INTO user(name,email) VALUES ('1','23')"
+            cur.execute(query)
+                
+            mysql.connection.commit()
+            cur.close()
+            
+            return 'File uploaded successfully!'
+            
+    return render_template('upload.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
